@@ -1,0 +1,2811 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>太阳系探索 - Solar System Explorer</title>
+    <style>
+        :root {
+            /* Light Theme (Default) */
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f9fa;
+            --bg-tertiary: transparent;
+            --bg-panel: transparent;
+            --text-primary: #333333;
+            --text-secondary: #666666;
+            --text-tertiary: #999999;
+            --accent-primary: #2196f3;
+            --accent-secondary: #64b5f6;
+            --accent-hover: #42a5f5;
+            --border-color: transparent;
+            --shadow-light: transparent;
+            --shadow-medium: transparent;
+            --planet-bg: rgba(255, 152, 0, 0.03);
+            --moon-bg: rgba(144, 164, 174, 0.03);
+            --spacecraft-active-bg: rgba(76, 175, 80, 0.03);
+            --spacecraft-inactive-bg: rgba(244, 67, 54, 0.03);
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --bg-primary: #0d1117;
+            --bg-secondary: #0d1117;
+            --bg-tertiary: transparent;
+            --bg-panel: transparent;
+            --text-primary: #c9d1d9;
+            --text-secondary: #8b949e;
+            --text-tertiary: #6e7681;
+            --accent-primary: #58a6ff;
+            --accent-secondary: #79c0ff;
+            --accent-hover: #58a6ff;
+            --border-color: transparent;
+            --shadow-light: transparent;
+            --shadow-medium: transparent;
+            --planet-bg: rgba(255, 152, 0, 0.05);
+            --moon-bg: rgba(144, 164, 174, 0.05);
+            --spacecraft-active-bg: rgba(76, 175, 80, 0.05);
+            --spacecraft-inactive-bg: rgba(244, 67, 54, 0.05);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: var(--bg-secondary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 1800px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            padding: 15px 0;
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        header h1 {
+            font-size: 2em;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+            font-weight: 300;
+        }
+
+        header p {
+            color: var(--text-tertiary);
+            font-size: 0.9em;
+            margin-bottom: 5px;
+        }
+
+        .header-controls {
+            position: absolute;
+            top: 0;
+            right: 0;
+            display: flex;
+            gap: 8px;
+        }
+
+        .header-controls button {
+            background: transparent;
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 12px;
+            border-radius: 0;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.2s;
+            opacity: 0.7;
+        }
+
+        .header-controls button:hover {
+            color: var(--text-primary);
+            opacity: 1;
+            transform: none;
+        }
+
+        .info-panel {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .update-status-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 6px 0;
+            background: transparent;
+            border-radius: 0;
+            opacity: 0.8;
+        }
+
+        .update-status-section .update-info {
+            color: var(--text-tertiary);
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .update-status-section .status-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            font-size: 1em;
+        }
+
+        .controls-panel {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 10px 0;
+            margin-bottom: 20px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            box-shadow: none;
+        }
+
+        .control-section {
+            flex: 0 0 auto;
+            min-width: auto;
+        }
+
+        .control-section h3 {
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            font-weight: 400;
+        }
+
+        .legend {
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            margin-bottom: 0;
+        }
+
+        .legend h3 {
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            font-size: 0.9em;
+            font-weight: 400;
+        }
+
+        .legend-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9em;
+            cursor: pointer;
+            user-select: none;
+            padding: 6px 10px;
+            border-radius: 0;
+            transition: background 0.2s;
+        }
+
+        .legend-item:hover {
+            background: var(--bg-secondary);
+        }
+
+        .legend-item.disabled {
+            opacity: 0.35;
+            position: relative;
+        }
+
+        .legend-item.disabled::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.3) 2px,
+                rgba(0, 0, 0, 0.3) 4px
+            );
+            pointer-events: none;
+            border-radius: 5px;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            display: inline-block;
+            transition: all 0.3s;
+        }
+
+        .legend-planet { background: #ff9800; }
+        .legend-moon { background: #90a4ae; }
+        .legend-spacecraft-active { background: #4caf50; }
+        .legend-spacecraft-inactive { background: #f44336; }
+
+        .legend-item.disabled .legend-color {
+            filter: grayscale(100%);
+        }
+
+        .filter-checkbox {
+            display: none;
+        }
+
+        .controls-panel .control-section h3 {
+            color: #64b5f6;
+            margin-bottom: 10px;
+            font-size: 1em;
+        }
+
+
+        .table-container {
+            overflow-x: auto;
+            background: var(--bg-primary);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: box-shadow 0.3s ease;
+        }
+
+        [data-theme="dark"] .table-container {
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.9em;
+        }
+
+        thead {
+            background: var(--bg-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th {
+            padding: 14px 12px;
+            text-align: left;
+            color: var(--text-primary);
+            font-weight: 600;
+            white-space: nowrap;
+            border-bottom: 2px solid var(--accent-primary);
+            user-select: none;
+            position: relative;
+            transition: all 0.2s ease;
+            background: var(--bg-secondary);
+        }
+
+        [data-theme="dark"] th {
+            background: var(--bg-primary);
+            border-bottom-color: var(--accent-secondary);
+        }
+
+        th.sortable {
+            cursor: pointer;
+        }
+
+        th.sortable:hover {
+            background: var(--bg-tertiary);
+        }
+
+        th.sortable::after {
+            content: ' ↕';
+            opacity: 0.4;
+            margin-left: 8px;
+            color: var(--accent-primary);
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        [data-theme="dark"] th.sortable::after {
+            color: var(--accent-secondary);
+        }
+
+        th.sortable.asc::after {
+            content: ' ↑';
+            opacity: 1;
+        }
+
+        th.sortable.desc::after {
+            content: ' ↓';
+            opacity: 1;
+        }
+
+        td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            transition: all 0.2s ease;
+        }
+
+        /* Numeric columns right-aligned for better readability */
+        td:nth-child(4),
+        td:nth-child(5),
+        td:nth-child(6) {
+            text-align: right;
+        }
+
+        /* Keep name, coordinates, and detail info left-aligned */
+        td:nth-child(2),
+        td:nth-child(7),
+        td:nth-child(8) {
+            text-align: left;
+        }
+
+        /* Detail info column optimization */
+        .planet-extra div,
+        .moon-extra div,
+        .spacecraft-extra div {
+            text-align: left;
+            padding: 2px 0;
+            line-height: 1.6;
+            display: flex;
+            align-items: baseline;
+        }
+
+        .planet-extra .label,
+        .moon-extra .label,
+        .spacecraft-extra .label {
+            min-width: 130px;
+            color: var(--text-tertiary);
+            font-weight: 400;
+            margin-right: 8px;
+            display: inline-block;
+            flex-shrink: 0;
+        }
+
+        [data-theme="dark"] .planet-extra .label,
+        [data-theme="dark"] .moon-extra .label,
+        [data-theme="dark"] .spacecraft-extra .label {
+            color: #8b949e;
+        }
+
+
+        /* Zebra striping for better readability */
+        tbody tr:nth-child(even) {
+            background: var(--bg-tertiary);
+        }
+
+        [data-theme="dark"] tbody tr:nth-child(even) {
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Row hover effects */
+        .planet-row {
+            transition: background-color 0.2s ease;
+        }
+
+        .moon-row {
+            transition: background-color 0.2s ease;
+        }
+
+        .spacecraft-active-row {
+            transition: background-color 0.2s ease;
+        }
+
+        .spacecraft-inactive-row {
+            transition: background-color 0.2s ease;
+        }
+
+        .planet-row:hover {
+            background: var(--planet-bg);
+        }
+
+        .moon-row:hover {
+            background: var(--moon-bg);
+        }
+
+        .spacecraft-active-row:hover {
+            background: var(--spacecraft-active-bg);
+        }
+
+        .spacecraft-inactive-row:hover {
+            background: var(--spacecraft-inactive-bg);
+        }
+
+        .type-indicator {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .type-planet { background: #ff9800; }
+        .type-moon { background: #90a4ae; }
+        .type-spacecraft-active { background: #4caf50; }
+        .type-spacecraft-inactive { background: #f44336; }
+
+        .name-link {
+            color: var(--accent-primary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .name-link:hover {
+            color: var(--accent-hover);
+            text-decoration: underline;
+        }
+
+        .coordinates {
+            font-family: 'Courier New', monospace;
+            font-size: 0.8em;
+            color: var(--text-tertiary);
+            opacity: 0.7;
+            letter-spacing: 0.5px;
+        }
+
+        [data-theme="dark"] .coordinates {
+            opacity: 0.6;
+            color: #6e7681;
+        }
+
+        .collapsed-section {
+            display: none;
+        }
+
+        .collapsible-header {
+            cursor: pointer;
+            padding: 12px 0;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .collapsible-header:hover {
+            background: var(--bg-secondary);
+        }
+
+        .collapsible-header .count {
+            background: var(--bg-secondary);
+            color: var(--text-secondary);
+            padding: 2px 8px;
+            border-radius: 0;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .collapsible-header .arrow {
+            transition: transform 0.3s;
+            color: var(--text-tertiary);
+        }
+
+        .collapsible-header.expanded .arrow {
+            transform: rotate(180deg);
+        }
+
+        .spacecraft-extra {
+            background: transparent;
+            padding: 8px 0;
+            border-radius: 0;
+            margin-top: 5px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .planet-extra {
+            background: transparent;
+            padding: 8px 0;
+            border-radius: 0;
+            margin-top: 5px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .moon-extra {
+            background: transparent;
+            padding: 8px 0;
+            border-radius: 0;
+            margin-top: 5px;
+            font-size: 0.85em;
+            color: var(--text-secondary);
+        }
+
+        .spacecraft-extra .label,
+        .planet-extra .label,
+        .moon-extra .label {
+            color: var(--text-tertiary);
+            font-weight: 400;
+            margin-right: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: var(--text-tertiary);
+            font-size: 1.2em;
+        }
+
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #f44336;
+            font-size: 1.2em;
+        }
+
+        .hidden-row {
+            display: none !important;
+        }
+
+        .hidden-card {
+            display: none !important;
+        }
+
+        /* Tablet - Portrait (768px - 1024px) */
+        @media (max-width: 1024px) and (min-width: 769px) {
+            body {
+                padding: 15px;
+            }
+
+            header h1 {
+                font-size: 1.9em;
+            }
+
+            header p {
+                font-size: 0.85em;
+            }
+
+            .container {
+                max-width: 100%;
+            }
+
+            table {
+                font-size: 0.85em;
+            }
+
+            th, td {
+                padding: 10px 8px;
+            }
+
+            .controls-panel {
+                flex-direction: row;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            .control-section {
+                flex: 1 1 auto;
+                min-width: 300px;
+            }
+
+            .legend-items {
+                gap: 15px;
+            }
+
+            .legend-item {
+                padding: 8px 12px;
+                font-size: 0.85em;
+            }
+
+            .update-status-section {
+                flex: 0 0 auto;
+                min-width: 200px;
+            }
+        }
+
+        /* Mobile - Landscape (481px - 768px) */
+        @media (max-width: 768px) and (min-width: 481px) {
+            body {
+                padding: 12px;
+            }
+
+            header {
+                padding: 10px 0;
+                margin-bottom: 12px;
+            }
+
+            header h1 {
+                font-size: 1.7em;
+                margin-bottom: 8px;
+            }
+
+            header p {
+                font-size: 0.8em;
+            }
+
+            .header-controls {
+                gap: 6px;
+            }
+
+            .header-controls button {
+                padding: 6px 10px;
+                font-size: 0.85em;
+                min-height: 36px;
+                min-width: 44px;
+            }
+
+            .controls-panel {
+                flex-direction: column;
+                gap: 12px;
+                padding: 8px 0;
+            }
+
+            .control-section {
+                width: 100%;
+            }
+
+            #filter-label {
+                font-size: 0.9em;
+                margin-bottom: 8px;
+            }
+
+            .legend-items {
+                gap: 10px;
+                justify-content: flex-start;
+            }
+
+            .legend-item {
+                padding: 8px 12px;
+                font-size: 0.85em;
+                border-radius: 6px;
+            }
+
+            .legend-color {
+                width: 18px;
+                height: 18px;
+            }
+
+            .update-status-section {
+                width: 100%;
+                justify-content: space-between;
+                padding: 8px 0;
+            }
+
+            .update-info {
+                font-size: 0.8em;
+            }
+
+            .table-container {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            table {
+                font-size: 0.8em;
+                min-width: 800px;
+            }
+
+            th, td {
+                padding: 8px 6px;
+            }
+
+            .type-indicator {
+                padding: 2px 6px;
+                font-size: 0.75em;
+            }
+
+            .coordinates {
+                font-size: 0.8em;
+            }
+
+            .planet-extra,
+            .moon-extra,
+            .spacecraft-extra {
+                font-size: 0.8em;
+                padding: 6px 0;
+            }
+
+            .collapsible-header {
+                padding: 10px 0;
+            }
+
+            .collapsible-header .count {
+                font-size: 0.8em;
+                padding: 2px 6px;
+            }
+        }
+
+        /* Mobile - Portrait (max-width: 480px) */
+        @media (max-width: 480px) {
+            html {
+                scroll-behavior: smooth;
+            }
+
+            body {
+                padding: 10px 8px;
+                font-size: 14px;
+                line-height: 1.4;
+                -webkit-font-smoothing: antialiased;
+                -moz-osx-font-smoothing: grayscale;
+            }
+
+            header {
+                padding: 4px 0;
+                margin-bottom: 6px;
+                position: relative;
+                background: transparent;
+            }
+
+            header h1 {
+                font-size: 1.4em;
+                margin-bottom: 1px;
+                line-height: 1.15;
+                font-weight: 600;
+            }
+
+            header p {
+                font-size: 0.7em;
+                line-height: 1.2;
+                margin-bottom: 2px;
+                color: var(--text-secondary);
+            }
+
+            .header-controls {
+                position: absolute;
+                top: 4px;
+                right: 0;
+                display: flex;
+                justify-content: flex-end;
+                gap: 4px;
+            }
+
+            .header-controls button {
+                padding: 4px 8px;
+                font-size: 0.8em;
+                min-height: 32px;
+                min-width: 38px;
+                border-radius: 4px;
+                background: var(--bg-secondary);
+                border: 1px solid var(--border-color);
+                transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+            }
+
+            .header-controls button:hover,
+            .header-controls button:active {
+                transform: scale(0.95);
+                background: var(--bg-tertiary);
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+            }
+
+            .controls-panel {
+                flex-direction: column;
+                gap: 10px;
+                padding: 8px 0;
+                margin-bottom: 15px;
+            }
+
+            .control-section {
+                width: 100%;
+            }
+
+            #filter-label {
+                font-size: 0.95em;
+                margin-bottom: 8px;
+                font-weight: 600;
+                color: var(--accent-primary);
+            }
+
+            .legend {
+                width: 100%;
+            }
+
+            .legend-items {
+                display: grid;
+                grid-template-columns: repeat(4, 1fr);
+                gap: 8px;
+            }
+
+            .legend-item {
+                padding: 8px 6px;
+                font-size: 0.75em;
+                border-radius: 8px;
+                justify-content: center;
+                min-height: 48px;
+                flex-direction: column;
+                gap: 4px;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                border: 1px solid var(--border-color);
+            }
+
+            .legend-item:hover {
+                background: var(--bg-secondary);
+                transform: translateY(-2px);
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+
+            .legend-item:active {
+                transform: scale(0.95);
+            }
+
+            .legend-item.disabled {
+                opacity: 0.4;
+                filter: grayscale(0.5);
+            }
+
+            .legend-color {
+                width: 18px;
+                height: 18px;
+                flex-shrink: 0;
+                border-radius: 4px;
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+            }
+
+            .legend-item span:last-child {
+                line-height: 1.2;
+                text-align: center;
+                font-weight: 500;
+            }
+
+            .update-status-section {
+                width: 100%;
+                justify-content: space-between;
+                padding: 8px 12px;
+                flex-wrap: nowrap;
+                background: var(--bg-secondary);
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
+            }
+
+            .update-info {
+                font-size: 0.75em;
+                line-height: 1.4;
+                color: var(--text-secondary);
+            }
+
+            .status-icon {
+                font-size: 1.1em;
+            }
+
+            /* Hide table and show card layout */
+            .table-container {
+                overflow: visible;
+                padding-bottom: 60px;
+            }
+
+            table {
+                display: none;
+            }
+
+            /* Card container */
+            .card-container {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+            }
+
+            /* Individual card */
+            .object-card {
+                background: var(--bg-primary);
+                border-radius: 12px;
+                padding: 12px;
+                margin-bottom: 0;
+                border: 1px solid var(--border-color);
+                box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                touch-action: pan-y;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            /* Only apply scale transform on tap, not on scroll */
+            .object-card:active:not(:hover) {
+                transform: scale(0.98);
+            }
+
+            /* Allow touch scrolling on all card elements */
+            .object-card * {
+                touch-action: pan-y;
+            }
+
+            /* Links and buttons should still be clickable */
+            .object-card a,
+            .object-card button {
+                touch-action: manipulation;
+            }
+
+            .object-card.planet-card {
+                border-left: 4px solid #ff9800;
+            }
+
+            .object-card.moon-card {
+                border-left: 4px solid #90a4ae;
+            }
+
+            .object-card.spacecraft-active-card {
+                border-left: 4px solid #4caf50;
+            }
+
+            .object-card.spacecraft-inactive-card {
+                border-left: 4px solid #f44336;
+            }
+
+            /* Card header */
+            .card-header {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                margin-bottom: 10px;
+            }
+
+            .card-type {
+                flex-shrink: 0;
+            }
+
+            .card-name {
+                flex: 1;
+                font-size: 1.1em;
+                font-weight: 600;
+                line-height: 1.3;
+            }
+
+            .card-name .name-link {
+                font-size: 1.1em;
+                text-decoration: none;
+                color: var(--accent-primary);
+                transition: color 0.2s;
+            }
+
+            .card-name .name-link:active {
+                color: var(--accent-hover);
+            }
+
+            /* Card body */
+            .card-body {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px 12px;
+                font-size: 0.85em;
+                line-height: 1.5;
+            }
+
+            .card-field {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+            }
+
+            .card-field.full-width {
+                grid-column: 1 / -1;
+            }
+
+            .card-field-label {
+                font-size: 0.75em;
+                color: var(--text-tertiary);
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+            }
+
+            .card-field-value {
+                color: var(--text-primary);
+                font-weight: 600;
+            }
+
+            .card-field-value.coordinates {
+                font-family: 'SF Mono', 'Monaco', 'Courier New', monospace;
+                font-size: 0.8em;
+                line-height: 1.6;
+                background: var(--bg-secondary);
+                padding: 6px 8px;
+                border-radius: 4px;
+                border: 1px solid var(--border-color);
+            }
+
+            /* Card expand button - hidden on mobile */
+            .card-expand-btn {
+                display: none;
+            }
+
+            /* Card extra info - always expanded on mobile */
+            .card-extra {
+                display: block;
+                margin-top: 10px;
+                padding-top: 12px;
+                border-top: 1px solid var(--border-color);
+            }
+
+            /* Only animate on initial load */
+            .card-extra.animate {
+                animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateY(-10px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+
+            .card-extra .field-group {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 6px 12px;
+                font-size: 0.8em;
+            }
+
+            .card-extra .field-item {
+                display: flex;
+                flex-direction: column;
+                gap: 3px;
+            }
+
+            .card-extra .field-label {
+                color: var(--text-tertiary);
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                font-size: 0.7em;
+            }
+
+            .card-extra .field-value {
+                color: var(--text-primary);
+                font-weight: 600;
+                padding: 4px 0;
+            }
+
+            /* Collapsible header for inactive */
+            .collapsible-header {
+                padding: 12px 0;
+                margin-top: 15px;
+                min-height: 48px;
+            }
+
+            .collapsible-header .count {
+                font-size: 0.8em;
+                padding: 4px 10px;
+                border-radius: 12px;
+            }
+
+            .arrow {
+                font-size: 1.1em;
+            }
+
+            .loading,
+            .error {
+                padding: 30px 20px;
+                font-size: 1.1em;
+                line-height: 1.6;
+                text-align: center;
+            }
+
+            /* Target info styling */
+            .target-info {
+                color: var(--text-tertiary);
+                font-size: 0.75em;
+                margin-top: 2px;
+            }
+
+            /* Back to top button */
+            .back-to-top {
+                position: fixed;
+                bottom: 80px;
+                right: 16px;
+                width: 48px;
+                height: 48px;
+                border-radius: 50%;
+                background: var(--accent-primary);
+                color: white;
+                border: none;
+                box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+                cursor: pointer;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 1.5em;
+                opacity: 0;
+                transform: translateY(20px);
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 999;
+            }
+
+            .back-to-top.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+
+            .back-to-top:active {
+                transform: scale(0.9);
+            }
+
+            /* Scroll progress indicator */
+            .scroll-progress {
+                position: fixed;
+                top: 0;
+                left: 0;
+                height: 3px;
+                background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+                width: 0%;
+                transition: width 0.1s ease-out;
+                z-index: 1001;
+            }
+        }
+
+        /* Very small screens (max-width: 360px) */
+        @media (max-width: 360px) {
+            body {
+                padding: 8px;
+                font-size: 13px;
+            }
+
+            header h1 {
+                font-size: 1.3em;
+            }
+
+            header p {
+                font-size: 0.7em;
+            }
+
+            .legend-items {
+                grid-template-columns: 1fr;
+            }
+
+            .legend-item {
+                padding: 8px 10px;
+                font-size: 0.8em;
+            }
+
+            table {
+                font-size: 0.7em;
+                min-width: 850px;
+            }
+
+            th, td {
+                padding: 6px 4px;
+            }
+
+            .type-indicator {
+                padding: 2px 6px;
+                font-size: 0.65em;
+            }
+
+            .coordinates {
+                font-size: 0.7em;
+            }
+
+            .planet-extra,
+            .moon-extra,
+            .spacecraft-extra {
+                font-size: 0.75em;
+                padding: 4px 0;
+            }
+        }
+
+        /* Large tablets and small laptops (1025px - 1440px) */
+        @media (min-width: 1025px) and (max-width: 1440px) {
+            body {
+                padding: 18px;
+            }
+
+            header h1 {
+                font-size: 2em;
+            }
+
+            .container {
+                max-width: 1400px;
+            }
+
+            table {
+                font-size: 0.9em;
+            }
+
+            th, td {
+                padding: 12px 10px;
+            }
+
+            .legend-items {
+                gap: 18px;
+            }
+
+            .legend-item {
+                padding: 6px 10px;
+            }
+        }
+
+        /* Large screens (1441px - 1800px) */
+        @media (min-width: 1441px) {
+            .container {
+                max-width: 1700px;
+            }
+
+            table {
+                font-size: 0.95em;
+            }
+
+            th, td {
+                padding: 14px 12px;
+            }
+        }
+
+        /* Ultra wide screens (1801px+) */
+        @media (min-width: 1801px) {
+            .container {
+                max-width: 1800px;
+            }
+
+            body {
+                padding: 25px;
+            }
+
+            header h1 {
+                font-size: 2.2em;
+            }
+
+            table {
+                font-size: 1em;
+            }
+
+            th, td {
+                padding: 16px 14px;
+            }
+        }
+
+        /* Touch device optimizations */
+        @media (hover: none) and (pointer: coarse) {
+            /* Increase touch targets */
+            .legend-item {
+                min-height: 44px;
+            }
+
+            .legend-item:active {
+                transform: scale(0.98);
+                background: var(--bg-secondary);
+            }
+
+            .header-controls button:active {
+                transform: scale(0.95);
+            }
+
+            .collapsible-header:active {
+                background: var(--bg-secondary);
+            }
+
+            th:active {
+                background: var(--bg-secondary);
+            }
+
+            .name-link:active {
+                color: var(--accent-hover);
+            }
+
+            /* Improve touch scrolling - allow both vertical and horizontal scrolling */
+            .table-container {
+                touch-action: manipulation;
+                overflow-x: auto;
+                scroll-behavior: smooth;
+            }
+
+            /* Add visual feedback for touch */
+            .planet-row:active,
+            .moon-row:active,
+            .spacecraft-active-row:active,
+            .spacecraft-inactive-row:active {
+                background: var(--planet-bg);
+                opacity: 0.8;
+            }
+        }
+
+        /* Dark mode specific mobile optimizations */
+        @media (max-width: 480px) {
+            [data-theme="dark"] .legend-item {
+                background: rgba(88, 166, 255, 0.05);
+            }
+
+            [data-theme="dark"] .legend-item:hover {
+                background: rgba(88, 166, 255, 0.1);
+            }
+
+            [data-theme="dark"] th {
+                background: var(--bg-primary);
+            }
+
+            [data-theme="dark"] .header-controls button {
+                background: rgba(88, 166, 255, 0.1);
+            }
+
+            [data-theme="dark"] .header-controls button:hover,
+            [data-theme="dark"] .header-controls button:active {
+                background: rgba(88, 166, 255, 0.15);
+            }
+        }
+
+        /* Improve contrast and readability for all devices */
+        @media (prefers-contrast: more) {
+            :root {
+                --text-primary: #000000;
+                --text-secondary: #333333;
+                --text-tertiary: #666666;
+                --border-color: #e0e0e0;
+            }
+
+            [data-theme="dark"] {
+                --text-primary: #ffffff;
+                --text-secondary: #e0e0e0;
+                --text-tertiary: #b0b0b0;
+                --border-color: #404040;
+            }
+
+            .legend-item {
+                border: 1px solid var(--border-color);
+            }
+
+            th {
+                border-bottom: 2px solid var(--border-color);
+            }
+
+            td {
+                border-bottom: 1px solid var(--border-color);
+            }
+        }
+
+        /* Reduce motion for users who prefer it */
+        @media (prefers-reduced-motion: reduce) {
+            * {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+            }
+        }
+
+        /* Desktop-specific optimizations */
+        @media (min-width: 1025px) {
+            /* Improve table readability on desktop */
+            .table-container:hover {
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+            }
+
+            [data-theme="dark"] .table-container:hover {
+                box-shadow: 0 4px 16px rgba(0, 0, 0, 0.24);
+            }
+
+            /* Smooth hover transitions for table rows */
+            tbody tr {
+                transition: all 0.2s ease;
+            }
+
+            /* Enhance header visual feedback on hover */
+            th:hover {
+                background: var(--bg-tertiary);
+            }
+
+            /* Improve name column visibility */
+            td:nth-child(2) {
+                font-weight: 500;
+                color: var(--text-primary);
+            }
+
+            /* Enhance coordinate column visibility */
+            td:nth-child(7) .coordinates {
+                background: var(--bg-secondary);
+                border-radius: 4px;
+                padding: 8px 10px;
+            }
+        }
+
+        /* Landscape optimizations for mobile */
+        @media (max-height: 500px) and (max-width: 900px) {
+            body {
+                padding: 8px;
+            }
+
+            header {
+                padding: 5px 0;
+                margin-bottom: 8px;
+            }
+
+            header h1 {
+                font-size: 1.4em;
+                margin-bottom: 4px;
+            }
+
+            header p {
+                font-size: 0.7em;
+            }
+
+            .controls-panel {
+                gap: 8px;
+                padding: 5px 0;
+                margin-bottom: 10px;
+            }
+
+            .legend-items {
+                gap: 8px;
+            }
+
+            .legend-item {
+                padding: 6px 8px;
+                font-size: 0.75em;
+                min-height: 36px;
+            }
+
+            th, td {
+                padding: 6px 5px;
+                font-size: 0.75em;
+            }
+
+            .collapsible-header {
+                margin-top: 10px;
+                padding: 8px 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1 id="main-title">🌌 Solar System Explorer</h1>
+            <p id="subtitle">Wandering through the starry sea, witnessing the cosmic dance</p>
+            <div class="header-controls">
+                <button id="theme-btn" onclick="toggleTheme()" title="切换主题/Toggle Theme">🌙</button>
+                <button id="lang-btn" onclick="toggleLanguage()">中文</button>
+            </div>
+        </header>
+
+        <div class="controls-panel">
+            <div class="control-section" style="display: flex; align-items: center; gap: 15px; flex-wrap: wrap; flex: 1;">
+                <div id="filter-label" style="font-weight: 600; color: #64b5f6; font-size: 0.95em;">Filter by Type:</div>
+                <div class="legend">
+                    <div class="legend-items" style="gap: 12px;">
+                        <div class="legend-item" onclick="toggleFilter('planet')">
+                            <input type="checkbox" class="filter-checkbox" id="filter-planet">
+                            <span class="legend-color legend-planet"></span>
+                            <span id="label-planet">Planets</span>
+                        </div>
+                        <div class="legend-item" onclick="toggleFilter('moon')">
+                            <input type="checkbox" class="filter-checkbox" id="filter-moon">
+                            <span class="legend-color legend-moon"></span>
+                            <span id="label-moon">Moons</span>
+                        </div>
+                        <div class="legend-item" onclick="toggleFilter('spacecraft-active')">
+                            <input type="checkbox" class="filter-checkbox" id="filter-spacecraft-active" checked>
+                            <span class="legend-color legend-spacecraft-active"></span>
+                            <span id="label-spacecraft-active">Spacecraft (Active)</span>
+                        </div>
+                        <div class="legend-item" onclick="toggleFilter('spacecraft-inactive')">
+                            <input type="checkbox" class="filter-checkbox" id="filter-spacecraft-inactive" checked>
+                            <span class="legend-color legend-spacecraft-inactive"></span>
+                            <span id="label-spacecraft-inactive">Spacecraft (Inactive)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="update-status-section">
+                <div class="update-info">
+                    <span id="last-update-label">Last Update: </span>
+                    <span id="last-update">Loading...</span>
+                </div>
+                <div class="status-icon">
+                    <span id="refresh-status">🔄</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Scroll progress indicator -->
+        <div class="scroll-progress" id="scroll-progress"></div>
+
+        <!-- Back to top button -->
+        <button class="back-to-top" id="back-to-top" onclick="scrollToTop()" aria-label="Back to top">
+            ↑
+        </button>
+
+        <div class="table-container">
+            <table id="solar-system-table">
+                <thead>
+                    <tr>
+                        <th id="th-type">Type</th>
+                        <th id="th-name">Name</th>
+                        <th id="th-distance-sun">Distance from Sun</th>
+                        <th id="th-speed-sun">Speed to Sun</th>
+                        <th id="th-distance-earth">Distance from Earth</th>
+                        <th id="th-speed-earth">Speed to Earth</th>
+                        <th id="th-coordinates">Position (AU)</th>
+                        <th id="th-extra">Detailed Info</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    <tr>
+                        <td colspan="8" class="loading" id="loading-text">Loading data...</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <div class="collapsible-header" id="inactive-toggle" style="display: none;">
+                <div>
+                    <span id="inactive-label">Inactive Spacecraft</span>
+                    <span class="count" id="inactive-count">0</span>
+                </div>
+                <span class="arrow">▼</span>
+            </div>
+
+            <table id="inactive-table" style="display: none;">
+                <thead>
+                    <tr>
+                        <th id="th-type-inactive">Type</th>
+                        <th id="th-name-inactive">Name</th>
+                        <th id="th-distance-sun-inactive">Distance from Sun</th>
+                        <th id="th-speed-sun-inactive">Speed to Sun</th>
+                        <th id="th-distance-earth-inactive">Distance from Earth / Target</th>
+                        <th id="th-speed-earth-inactive">Speed to Earth</th>
+                        <th id="th-coordinates-inactive">Position (AU)</th>
+                        <th id="th-extra-inactive">Detailed Info</th>
+                    </tr>
+                </thead>
+                <tbody id="inactive-table-body">
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        // Language translations
+        const translations = {
+            zh: {
+                mainTitle: '🌌 太阳系探索',
+                subtitle: '漫步星辰大海，见证宇宙之舞',
+                langBtn: 'English',
+                lastUpdateLabel: '最后更新时间: ',
+                statusLabel: '状态: ',
+                statusRefreshing: '🔄',
+                statusUpdated: '✓',
+                statusError: '❌',
+                filterLabel: '类型过滤',
+                sortLabel: '排序设置',
+                labelPlanet: '行星',
+                labelMoon: '卫星',
+                labelSpacecraftActive: '探测器 (活跃)',
+                labelSpacecraftInactive: '探测器 (失效)',
+                labelSortBy: '排序依据:',
+                labelSortOrder: '排序顺序:',
+                optName: '名称',
+                optDistanceSun: '距离太阳',
+                optDistanceEarth: '距离地球',
+                optSpeedSun: '相对太阳速度',
+                optSpeedEarth: '相对地球速度',
+                optAsc: '升序',
+                optDesc: '降序',
+                thType: '类型',
+                thName: '名称',
+                thCoordinates: '位置坐标 (AU)',
+                thDistanceSun: '距离太阳',
+                thSpeedSun: '相对太阳速度',
+                thDistanceEarth: '距离地球/目标',
+                thSpeedEarth: '相对地球速度',
+                thExtra: '详细信息',
+                loadingText: '正在加载数据...',
+                inactiveLabel: '失效探测器',
+                typePlanet: '行星',
+                typeMoon: '卫星',
+                typeSpacecraft: '探测器',
+                typeInactive: '失效',
+                planetType: '类型:',
+                moonType: '类型:',
+                mass: '质量:',
+                rotationPeriod: '自转周期:',
+                orbitalPeriod: '公转周期:',
+                density: '密度:',
+                radius: '半径:',
+                equatorialRadius: '赤道半径:',
+                polarRadius: '极半径:',
+                magneticField: '磁场:',
+                surfaceTemperature: '表面温度:',
+                atmosphere: '大气层:',
+                atmosphericPressure: '大气压强:',
+                launchDate: '发射日期:',
+                runtime: '运行时长:',
+                target: '目标:',
+                trajectoryType: '轨迹类型:',
+                currentPhase: '当前阶段:',
+                arrivalTime: '到达时间:',
+                loadingError: '加载数据失败: ',
+                checkServer: '请检查服务器是否正常运行'
+            },
+            en: {
+                mainTitle: '🌌 Solar System Explorer',
+                subtitle: 'Wandering through the starry sea, witnessing the cosmic dance',
+                langBtn: '中文',
+                lastUpdateLabel: 'Last Update: ',
+                statusLabel: 'Status: ',
+                statusRefreshing: '🔄',
+                statusUpdated: '✓',
+                statusError: '❌',
+                filterLabel: 'Filter by Type',
+                sortLabel: 'Sorting Options',
+                labelPlanet: 'Planets',
+                labelMoon: 'Moons',
+                labelSpacecraftActive: 'Spacecraft (Active)',
+                labelSpacecraftInactive: 'Spacecraft (Inactive)',
+                labelSortBy: 'Sort by:',
+                labelSortOrder: 'Order:',
+                optName: 'Name',
+                optDistanceSun: 'Distance from Sun',
+                optDistanceEarth: 'Distance from Earth',
+                optSpeedSun: 'Speed relative to Sun',
+                optSpeedEarth: 'Speed relative to Earth',
+                optAsc: 'Ascending',
+                optDesc: 'Descending',
+                thType: 'Type',
+                thName: 'Name',
+                thCoordinates: 'Position (AU)',
+                thDistanceSun: 'Distance from Sun',
+                thSpeedSun: 'Speed to Sun',
+                thDistanceEarth: 'Distance from Earth / Target',
+                thSpeedEarth: 'Speed to Earth',
+                thExtra: 'Detailed Info',
+                loadingText: 'Loading data...',
+                inactiveLabel: 'Inactive Spacecraft',
+                typePlanet: 'Planet',
+                typeMoon: 'Moon',
+                typeSpacecraft: 'Spacecraft',
+                typeInactive: 'Inactive',
+                planetType: 'Type:',
+                moonType: 'Type:',
+                mass: 'Mass:',
+                rotationPeriod: 'Rotation Period:',
+                orbitalPeriod: 'Orbital Period:',
+                density: 'Density:',
+                radius: 'Radius:',
+                equatorialRadius: 'Equatorial Radius:',
+                polarRadius: 'Polar Radius:',
+                magneticField: 'Magnetic Field:',
+                surfaceTemperature: 'Surface Temp:',
+                atmosphere: 'Atmosphere:',
+                atmosphericPressure: 'Atmospheric Pressure:',
+                launchDate: 'Launch Date:',
+                runtime: 'Mission Duration:',
+                target: 'Target:',
+                trajectoryType: 'Trajectory Type:',
+                currentPhase: 'Current Phase:',
+                arrivalTime: 'Arrival Time:',
+                loadingError: 'Failed to load data: ',
+                checkServer: 'Please check if server is running'
+            }
+        };
+
+        // Global variables
+        let updateInterval;
+        const REFRESH_RATE = 500; // 0.5 second
+        let currentLang = 'en';
+        let globalData = null;
+        let currentTheme = 'light'; // default to light theme
+        let isFirstLoad = true; // Track if it's the first load
+        
+        // Sort state
+        let currentSort = {
+            column: 'distance_sun', // default sort by distance from sun
+            order: 'asc' // ascending order
+        };
+
+        // Theme toggle function
+        function toggleTheme() {
+            currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            // Update theme on document
+            if (currentTheme === 'dark') {
+                document.documentElement.setAttribute('data-theme', 'dark');
+                document.getElementById('theme-btn').textContent = '☀';
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+                document.getElementById('theme-btn').textContent = '🌙';
+            }
+            
+            // Save theme preference to localStorage
+            localStorage.setItem('theme', currentTheme);
+        }
+
+        // Language toggle function
+        function toggleLanguage() {
+            currentLang = currentLang === 'zh' ? 'en' : 'zh';
+            const t = translations[currentLang];
+            
+            // Update UI text
+            document.getElementById('main-title').textContent = t.mainTitle;
+            document.getElementById('subtitle').textContent = t.subtitle;
+            document.getElementById('lang-btn').textContent = t.langBtn;
+            document.getElementById('last-update-label').textContent = t.lastUpdateLabel;
+            document.getElementById('filter-label').textContent = t.filterLabel;
+            document.getElementById('label-planet').textContent = t.labelPlanet;
+            document.getElementById('label-moon').textContent = t.labelMoon;
+            document.getElementById('label-spacecraft-active').textContent = t.labelSpacecraftActive;
+            document.getElementById('label-spacecraft-inactive').textContent = t.labelSpacecraftInactive;
+            document.getElementById('th-type').textContent = t.thType;
+            document.getElementById('th-name').textContent = t.thName;
+            document.getElementById('th-coordinates').textContent = t.thCoordinates;
+            document.getElementById('th-distance-sun').textContent = t.thDistanceSun;
+            document.getElementById('th-speed-sun').textContent = t.thSpeedSun;
+            document.getElementById('th-distance-earth').textContent = t.thDistanceEarth;
+            document.getElementById('th-speed-earth').textContent = t.thSpeedEarth;
+            document.getElementById('th-extra').textContent = t.thExtra;
+            document.getElementById('th-type-inactive').textContent = t.thType;
+            document.getElementById('th-name-inactive').textContent = t.thName;
+            document.getElementById('th-coordinates-inactive').textContent = t.thCoordinates;
+            document.getElementById('th-distance-sun-inactive').textContent = t.thDistanceSun;
+            document.getElementById('th-speed-sun-inactive').textContent = t.thSpeedSun;
+            document.getElementById('th-distance-earth-inactive').textContent = t.thDistanceEarth;
+            document.getElementById('th-speed-earth-inactive').textContent = t.thSpeedEarth;
+            document.getElementById('th-extra-inactive').textContent = t.thExtra;
+            document.getElementById('inactive-label').textContent = t.inactiveLabel;
+            document.getElementById('loading-text').textContent = t.loadingText;
+            
+            // Update HTML lang attribute
+            document.documentElement.lang = currentLang === 'zh' ? 'zh-CN' : 'en';
+            
+            // Update data display
+            if (globalData) {
+                updateTable(globalData);
+            }
+        }
+
+        // Filter toggle function
+        function toggleFilter(type) {
+            const checkbox = document.getElementById(`filter-${type}`);
+            const legendItem = checkbox.closest('.legend-item');
+            
+            // Toggle checkbox (already done by click, but prevent default behavior)
+            event.preventDefault();
+            checkbox.checked = !checkbox.checked;
+            
+            // Update visual state
+            if (checkbox.checked) {
+                legendItem.classList.remove('disabled');
+            } else {
+                legendItem.classList.add('disabled');
+            }
+            
+            // Re-render table with updated filter
+            if (globalData) {
+                updateTable(globalData);
+            }
+        }
+
+
+        // Format distance based on type and unit preference
+        function formatDistance(distanceAu, isSpacecraft = false) {
+            const AU_KM = 149597870.7; // 1 AU in km
+            const km = distanceAu * AU_KM;
+            
+            // Format: AU in normal text, km in smaller/lighter color below
+            // Example:
+            // 1.2345 AU
+            // 149,123,456.78 km
+            // This creates a clean visual hierarchy without parentheses
+            return `${distanceAu.toFixed(4)} AU<br><span style="color: var(--text-tertiary); font-size: 0.85em;">${km.toFixed(2)} km</span>`;
+        }
+
+        // Global sort function - returns true if sorting was applied
+        function applySort(sortColumn = null, sortOrder = null) {
+            if (!globalData) return false;
+            
+            // Use provided sort parameters or current sort state
+            const sortBy = sortColumn !== null ? sortColumn : currentSort.column;
+            const order = sortOrder !== null ? sortOrder : currentSort.order;
+            
+            // Update sort state if new parameters provided
+            if (sortColumn !== null) {
+                currentSort.column = sortColumn;
+            }
+            if (sortOrder !== null) {
+                currentSort.order = sortOrder;
+            }
+            
+            // Collect all items with their type information
+            let allItems = [];
+            
+            globalData.planets.forEach(planet => {
+                allItems.push({ ...planet, originalType: 'planet' });
+                planet.moons.forEach(moon => {
+                    allItems.push({ ...moon, originalType: 'moon', parentName: planet.name });
+                });
+            });
+            
+            globalData.spacecraft.forEach(sc => {
+                allItems.push({ ...sc, originalType: 'spacecraft' });
+            });
+            
+            // Sort items
+            allItems.sort((a, b) => {
+                let valueA, valueB;
+                
+                switch (sortBy) {
+                    case 'name':
+                        valueA = a.name;
+                        valueB = b.name;
+                        break;
+                    case 'distance_sun':
+                        valueA = a.distance_sun_au || 0;
+                        valueB = b.distance_sun_au || 0;
+                        break;
+                    case 'distance_earth':
+                        const earthDistA = parseFloat(a.distance_earth) || 0;
+                        const earthDistB = parseFloat(b.distance_earth) || 0;
+                        valueA = earthDistA;
+                        valueB = earthDistB;
+                        break;
+                    case 'speed_sun':
+                        const speedSunA = parseFloat(a.speed_sun) || 0;
+                        const speedSunB = parseFloat(b.speed_sun) || 0;
+                        valueA = speedSunA;
+                        valueB = speedSunB;
+                        break;
+                    case 'speed_earth':
+                        const speedEarthA = parseFloat(a.speed_earth) || 0;
+                        const speedEarthB = parseFloat(b.speed_earth) || 0;
+                        valueA = speedEarthA;
+                        valueB = speedEarthB;
+                        break;
+                    default:
+                        valueA = a.name;
+                        valueB = b.name;
+                }
+                
+                let comparison = 0;
+                if (typeof valueA === 'number' && typeof valueB === 'number') {
+                    comparison = valueA - valueB;
+                } else {
+                    comparison = String(valueA).localeCompare(String(valueB));
+                }
+                
+                return order === 'asc' ? comparison : -comparison;
+            });
+            
+            // Update globalData with sorted order
+            const sortedPlanets = [];
+            const sortedMoons = {};
+            const sortedSpacecraft = [];
+            
+            allItems.forEach(item => {
+                if (item.originalType === 'planet') {
+                    sortedPlanets.push(item);
+                } else if (item.originalType === 'moon') {
+                    if (!sortedMoons[item.parentName]) {
+                        sortedMoons[item.parentName] = [];
+                    }
+                    sortedMoons[item.parentName].push(item);
+                } else if (item.originalType === 'spacecraft') {
+                    sortedSpacecraft.push(item);
+                }
+            });
+            
+            // Update moons for sorted planets
+            sortedPlanets.forEach(planet => {
+                planet.moons = sortedMoons[planet.name] || [];
+            });
+            
+            globalData.planets = sortedPlanets;
+            globalData.spacecraft = sortedSpacecraft;
+            
+            return true; // Return true to indicate sorting was applied
+        }
+
+
+        // Fetch solar system data
+        async function fetchSolarSystemData() {
+            try {
+                const response = await fetch('/api/solar-system-data');
+                if (!response.ok) {
+                    throw new Error('网络响应错误');
+                }
+                return await response.json();
+            } catch (error) {
+                console.error('获取数据失败:', error);
+                throw error;
+            }
+        }
+
+        // Format coordinates
+        function formatCoordinates(pos) {
+            return `(${pos.x.toFixed(4)}, ${pos.y.toFixed(4)}, ${pos.z.toFixed(4)})`;
+        }
+
+        // Get type indicator
+        function getTypeIndicator(item) {
+            const t = translations[currentLang];
+            if (item.type === 'planet') {
+                return `<span class="type-indicator type-planet">${t.typePlanet}</span>`;
+            } else if (item.type === 'moon') {
+                return `<span class="type-indicator type-moon">${t.typeMoon}</span>`;
+            } else if (item.type === 'spacecraft') {
+                if (item.status === 'active') {
+                    return `<span class="type-indicator type-spacecraft-active">${t.typeSpacecraft}</span>`;
+                } else {
+                    return `<span class="type-indicator type-spacecraft-inactive">${t.typeInactive}</span>`;
+                }
+            }
+            return '';
+        }
+
+        // Get name with link
+        function getNameLink(item) {
+            const displayName = currentLang === 'zh' ? item.name : (item.name_en || item.name);
+            const wikiUrl = currentLang === 'zh' ? item.wikipedia_url : (item.wikipedia_url_en || item.wikipedia_url);
+            return `<a href="${wikiUrl}" target="_blank" class="name-link">${displayName}</a>`;
+        }
+
+        // Get extra info for planets
+        function getPlanetExtraInfo(item) {
+            if (item.type !== 'planet') return '';
+            
+            const t = translations[currentLang];
+            const planetType = currentLang === 'zh' ? item.planet_type : (item.planet_type_en || item.planet_type);
+            return `
+                <div class="planet-extra">
+                    <div><span class="label">${t.planetType}</span> ${planetType}</div>
+                    <div><span class="label">${t.mass}</span> ${item.extra_info.mass}</div>
+                    <div><span class="label">${t.rotationPeriod}</span> ${item.extra_info.rotation_period}</div>
+                    <div><span class="label">${t.orbitalPeriod}</span> ${item.extra_info.orbital_period}</div>
+                    <div><span class="label">${t.density}</span> ${item.extra_info.density}</div>
+                    <div><span class="label">${t.radius}</span> ${item.extra_info.radius}</div>
+                    <div><span class="label">${t.equatorialRadius}</span> ${item.extra_info.equatorial_radius}</div>
+                    <div><span class="label">${t.polarRadius}</span> ${item.extra_info.polar_radius}</div>
+                    <div><span class="label">${t.magneticField}</span> ${item.extra_info.magnetic_field}</div>
+                    <div><span class="label">${t.atmosphericPressure}</span> ${item.extra_info.atmospheric_pressure}</div>
+                </div>
+            `;
+        }
+
+        // Get extra info for moons
+        function getMoonExtraInfo(item) {
+            if (item.type !== 'moon') return '';
+            
+            const t = translations[currentLang];
+            const moonType = currentLang === 'zh' ? (item.moon_type || 'N/A') : (item.moon_type_en || item.moon_type || 'N/A');
+            const atmosphere = currentLang === 'zh' ? (item.extra_info.atmosphere || 'N/A') : (item.extra_info.atmosphere_en || item.extra_info.atmosphere || 'N/A');
+            return `
+                <div class="moon-extra">
+                    <div><span class="label">${t.moonType}</span> ${moonType}</div>
+                    <div><span class="label">${t.mass}</span> ${item.extra_info.mass}</div>
+                    <div><span class="label">${t.rotationPeriod}</span> ${item.extra_info.rotation_period}</div>
+                    <div><span class="label">${t.orbitalPeriod}</span> ${item.extra_info.orbital_period}</div>
+                    <div><span class="label">${t.density}</span> ${item.extra_info.density}</div>
+                    <div><span class="label">${t.radius}</span> ${item.extra_info.radius}</div>
+                    <div><span class="label">${t.magneticField}</span> ${item.extra_info.magnetic_field}</div>
+                    <div><span class="label">${t.surfaceTemperature}</span> ${item.extra_info.surface_temperature}</div>
+                    <div><span class="label">${t.atmosphere}</span> ${atmosphere}</div>
+                    <div><span class="label">${t.atmosphericPressure}</span> ${item.extra_info.atmospheric_pressure}</div>
+                </div>
+            `;
+        }
+
+        // Format time since launch based on language
+        function formatTimeSinceLaunch(timeData) {
+            if (currentLang === 'zh') {
+                const { years, days, hours } = timeData;
+                if (years > 0) {
+                    return `${years}年${days}天`;
+                } else if (days > 0) {
+                    return `${days}天${hours}小时`;
+                } else {
+                    return `${hours}小时`;
+                }
+            } else {
+                const { years, days, hours } = timeData;
+                if (years > 0) {
+                    return `${years} years ${days} days`;
+                } else if (days > 0) {
+                    return `${days} days ${hours} hours`;
+                } else {
+                    return `${hours} hours`;
+                }
+            }
+        }
+
+        // Get extra info for spacecraft
+        function getSpacecraftExtraInfo(item) {
+            if (item.type !== 'spacecraft') return '';
+            
+            const t = translations[currentLang];
+            const formattedTime = formatTimeSinceLaunch(item.time_since_launch);
+            const arrivalTime = item.arrival_time || (currentLang === 'zh' ? '无' : 'N/A');
+            
+            return `
+                <div class="spacecraft-extra">
+                    <div><span class="label">${t.launchDate}</span> ${item.launch_date}</div>
+                    <div><span class="label">${t.runtime}</span> ${formattedTime}</div>
+                    <div><span class="label">${t.target}</span> ${item.target_body}</div>
+                    <div><span class="label">${t.trajectoryType}</span> ${item.trajectory_type}</div>
+                    <div><span class="label">${t.currentPhase}</span> ${item.current_phase}</div>
+                    <div><span class="label">${t.arrivalTime}</span> ${arrivalTime}</div>
+                </div>
+            `;
+        }
+
+        // Check if we're in mobile view (≤480px)
+        function isMobileView() {
+            return window.innerWidth <= 480;
+        }
+
+        // Check if item should be displayed based on filters
+        function shouldDisplay(item) {
+            if (item.type === 'planet') {
+                return document.getElementById('filter-planet').checked;
+            } else if (item.type === 'moon') {
+                return document.getElementById('filter-moon').checked;
+            } else if (item.type === 'spacecraft') {
+                if (item.status === 'active') {
+                    return document.getElementById('filter-spacecraft-active').checked;
+                } else {
+                    return document.getElementById('filter-spacecraft-inactive').checked;
+                }
+            }
+            return true;
+        }
+
+        // Render card for mobile view
+        function renderCard(item, isInactive = false, withAnimation = false) {
+            const t = translations[currentLang];
+            const display = shouldDisplay(item);
+            const hiddenClass = display ? '' : 'hidden-card';
+            const animateClass = withAnimation ? ' animate' : '';
+            
+            const cardClass = isInactive ? 'spacecraft-inactive-card' : 
+                            item.type === 'planet' ? 'planet-card' :
+                            item.type === 'moon' ? 'moon-card' :
+                            item.status === 'active' ? 'spacecraft-active-card' : 'spacecraft-inactive-card';
+            
+            const isSpacecraft = item.type === 'spacecraft';
+            const distanceSunAu = item.distance_sun_au || item.position ? 
+                              Math.sqrt(item.position.x**2 + item.position.y**2 + item.position.z**2) : 0;
+            
+            // Format distance
+            const AU_KM = 149597870.7;
+            const earthKm = parseFloat(item.distance_earth) || 0;
+            const earthAu = earthKm / AU_KM;
+            
+            // Card ID for expand functionality
+            const cardId = `card-${item.type}-${item.name.replace(/\s+/g, '-')}`;
+            
+            // Build card HTML
+            let cardHtml = `
+                <div class="object-card ${cardClass} ${hiddenClass}" id="${cardId}" data-type="${item.type}" data-status="${item.status || ''}">
+                    <div class="card-header">
+                        <div class="card-type">${getTypeIndicator(item)}</div>
+                        <div class="card-name">${getNameLink(item)}</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="card-field">
+                            <span class="card-field-label">${t.thDistanceSun}</span>
+                            <span class="card-field-value">${formatDistance(distanceSunAu, isSpacecraft)}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-field-label">${t.thSpeedSun}</span>
+                            <span class="card-field-value">${item.speed_sun}</span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-field-label">${t.thDistanceEarth}</span>
+                            <span class="card-field-value">
+                                ${(() => {
+                                    // For active spacecraft with target info, prioritize target distance display
+                                    if (item.type === 'spacecraft' && item.status === 'active') {
+                                        const hasTargetInfo = item.target_position_known && item.target_distance !== null && item.target_distance !== undefined;
+                                        
+                                        if (hasTargetInfo) {
+                                            const targetDistanceAu = item.target_distance;
+                                            const targetDistanceKm = targetDistanceAu * AU_KM;
+                                            
+                                            // Translate target body names to Chinese
+                                            const targetNames = {
+                                                'Jupiter': '木星',
+                                                'Saturn': '土星',
+                                                'Mars': '火星',
+                                                'Europa': '欧罗巴',
+                                                'Interstellar space': '星际空间',
+                                                'Trojan asteroids': '特洛伊小行星',
+                                                'Kuiper Belt': '柯伊伯带',
+                                                'Sun': '太阳'
+                                            };
+                                            const targetNameZh = targetNames[item.target_body] || item.target_body;
+                                            const targetNameDisplay = currentLang === 'zh' ? targetNameZh : item.target_body;
+                                            
+                                                return `
+                                                ${earthAu.toFixed(4)} AU<br><span style="color: var(--text-tertiary); font-size: 0.85em;">${earthKm.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} km</span><br>
+                                                ${targetNameDisplay} ${targetDistanceAu.toFixed(4)} AU<br><span style="color: var(--text-tertiary); font-size: 0.85em;">${targetDistanceKm.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} km</span>
+                                            `;
+                                        } else {
+                                            // No target info, show Earth distance normally
+                                            return `${earthAu.toFixed(4)} AU<br><span style="color: var(--text-tertiary); font-size: 0.85em;">${earthKm.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} km</span>`;
+                                        }
+                                    } else {
+                                        // For planets/moons/inactive spacecraft, use normal format
+                                        return `${earthAu.toFixed(4)} AU<br><span style="color: var(--text-tertiary); font-size: 0.85em;">${earthKm.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} km</span>`;
+                                    }
+                                })()}
+                            </span>
+                        </div>
+                        <div class="card-field">
+                            <span class="card-field-label">${t.thSpeedEarth}</span>
+                            <span class="card-field-value">${item.speed_earth}</span>
+                        </div>
+                    </div>
+                    <div class="card-field full-width" style="margin-top: 8px;">
+                        <span class="card-field-label">${t.thCoordinates}</span>
+                        <span class="card-field-value coordinates">${formatCoordinates(item.position)}</span>
+                    </div>
+                    <button class="card-expand-btn" onclick="toggleCardExtra('${cardId}')">
+                        <span>${currentLang === 'zh' ? '详细信息' : 'Details'}</span>
+                        <span class="arrow">▼</span>
+                    </button>
+                    <div class="card-extra" id="${cardId}-extra">
+            `;
+            
+            // Add extra info based on item type
+            if (item.type === 'planet') {
+                const planetType = currentLang === 'zh' ? item.planet_type : (item.planet_type_en || item.planet_type);
+                cardHtml += `
+                    <div class="field-group">
+                        <div class="field-item">
+                            <span class="field-label">${t.planetType}</span>
+                            <span class="field-value">${planetType}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.mass}</span>
+                            <span class="field-value">${item.extra_info.mass}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.radius}</span>
+                            <span class="field-value">${item.extra_info.radius}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.rotationPeriod}</span>
+                            <span class="field-value">${item.extra_info.rotation_period}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.orbitalPeriod}</span>
+                            <span class="field-value">${item.extra_info.orbital_period}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.density}</span>
+                            <span class="field-value">${item.extra_info.density}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.equatorialRadius}</span>
+                            <span class="field-value">${item.extra_info.equatorial_radius}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.polarRadius}</span>
+                            <span class="field-value">${item.extra_info.polar_radius}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.magneticField}</span>
+                            <span class="field-value">${item.extra_info.magnetic_field}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.atmosphericPressure}</span>
+                            <span class="field-value">${item.extra_info.atmospheric_pressure}</span>
+                        </div>
+                    </div>
+                `;
+            } else if (item.type === 'moon') {
+                const moonType = currentLang === 'zh' ? (item.moon_type || 'N/A') : (item.moon_type_en || item.moon_type || 'N/A');
+                const atmosphere = currentLang === 'zh' ? (item.extra_info.atmosphere || 'N/A') : (item.extra_info.atmosphere_en || item.extra_info.atmosphere || 'N/A');
+                cardHtml += `
+                    <div class="field-group">
+                        <div class="field-item">
+                            <span class="field-label">${t.moonType}</span>
+                            <span class="field-value">${moonType}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.mass}</span>
+                            <span class="field-value">${item.extra_info.mass}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.radius}</span>
+                            <span class="field-value">${item.extra_info.radius}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.rotationPeriod}</span>
+                            <span class="field-value">${item.extra_info.rotation_period}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.orbitalPeriod}</span>
+                            <span class="field-value">${item.extra_info.orbital_period}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.density}</span>
+                            <span class="field-value">${item.extra_info.density}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.magneticField}</span>
+                            <span class="field-value">${item.extra_info.magnetic_field}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.surfaceTemperature}</span>
+                            <span class="field-value">${item.extra_info.surface_temperature}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.atmosphere}</span>
+                            <span class="field-value">${atmosphere}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.atmosphericPressure}</span>
+                            <span class="field-value">${item.extra_info.atmospheric_pressure}</span>
+                        </div>
+                    </div>
+                `;
+            } else if (item.type === 'spacecraft') {
+                const formattedTime = formatTimeSinceLaunch(item.time_since_launch);
+                const arrivalTime = item.arrival_time || (currentLang === 'zh' ? '无' : 'N/A');
+                cardHtml += `
+                    <div class="field-group">
+                        <div class="field-item">
+                            <span class="field-label">${t.launchDate}</span>
+                            <span class="field-value">${item.launch_date}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.runtime}</span>
+                            <span class="field-value">${formattedTime}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.target}</span>
+                            <span class="field-value">${item.target_body}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.trajectoryType}</span>
+                            <span class="field-value">${item.trajectory_type}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.currentPhase}</span>
+                            <span class="field-value">${item.current_phase}</span>
+                        </div>
+                        <div class="field-item">
+                            <span class="field-label">${t.arrivalTime}</span>
+                            <span class="field-value">${arrivalTime}</span>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            cardHtml += `
+                    </div>
+                </div>
+            `;
+            
+            return cardHtml;
+        }
+
+        // Toggle card extra info
+        function toggleCardExtra(cardId) {
+            const card = document.getElementById(cardId);
+            const extra = document.getElementById(`${cardId}-extra`);
+            const btn = card.querySelector('.card-expand-btn');
+            
+            if (extra && btn) {
+                extra.classList.toggle('expanded');
+                btn.classList.toggle('expanded');
+                const span = btn.querySelector('span:first-child');
+                span.textContent = extra.classList.contains('expanded') ? 
+                    (currentLang === 'zh' ? '收起' : 'Collapse') : 
+                    (currentLang === 'zh' ? '详细信息' : 'Details');
+            }
+        }
+
+        // Render table row
+        function renderRow(item, isInactive = false) {
+            const t = translations[currentLang];
+            const display = shouldDisplay(item);
+            const hiddenClass = display ? '' : 'hidden-row';
+            
+            const rowClass = isInactive ? 'spacecraft-inactive-row' : 
+                            item.type === 'planet' ? 'planet-row' :
+                            item.type === 'moon' ? 'moon-row' :
+                            item.status === 'active' ? 'spacecraft-active-row' : 'spacecraft-inactive-row';
+            
+            const isSpacecraft = item.type === 'spacecraft';
+            const distanceSunAu = item.distance_sun_au || item.position ? 
+                              Math.sqrt(item.position.x**2 + item.position.y**2 + item.position.z**2) : 0;
+            
+            // For distance_earth, we need to extract from the formatted string or calculate
+            // Since backend provides formatted strings, we'll use those for now
+            // In a future improvement, backend should provide raw AU values
+            
+            // Get appropriate extra info based on item type
+            let extraInfo = '';
+            if (item.type === 'planet') {
+                extraInfo = getPlanetExtraInfo(item);
+            } else if (item.type === 'moon') {
+                extraInfo = getMoonExtraInfo(item);
+            } else if (item.type === 'spacecraft') {
+                extraInfo = getSpacecraftExtraInfo(item);
+            }
+            
+            // Format distance from Earth with AU and km (using same format as distance from Sun)
+            const AU_KM = 149597870.7; // 1 AU in km
+            const earthKm = parseFloat(item.distance_earth) || 0;
+            const earthAu = earthKm / AU_KM;
+            
+            // For active spacecraft with target info, prioritize target distance display
+            if (item.type === 'spacecraft' && item.status === 'active') {
+                const hasTargetInfo = item.target_position_known && item.target_distance !== null && item.target_distance !== undefined;
+                
+                if (hasTargetInfo) {
+                    const targetDistanceAu = item.target_distance;
+                    const targetDistanceKm = targetDistanceAu * AU_KM;
+                    
+                    // Translate target body names to Chinese
+                    const targetNames = {
+                        'Jupiter': '木星',
+                        'Saturn': '土星',
+                        'Mars': '火星',
+                        'Europa': '欧罗巴',
+                        'Interstellar space': '星际空间',
+                        'Trojan asteroids': '特洛伊小行星',
+                        'Kuiper Belt': '柯伊伯带',
+                        'Sun': '太阳'
+                    };
+                    const targetNameZh = targetNames[item.target_body] || item.target_body;
+                    const targetNameDisplay = currentLang === 'zh' ? targetNameZh : item.target_body;
+                    
+                    // Concise format: Show both Earth and target distances
+                    formattedDistanceEarth = `
+                        ${earthAu.toFixed(4)} AU<br><span style="color: var(--text-tertiary); font-size: 0.85em;">${earthKm.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} km</span><br>
+                        ${targetNameDisplay} ${targetDistanceAu.toFixed(4)} AU<br><span style="color: var(--text-tertiary); font-size: 0.85em;">${targetDistanceKm.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} km</span>
+                    `;
+                } else {
+                    // No target info, show Earth distance normally
+                    formattedDistanceEarth = `${earthAu.toFixed(4)} AU<br><span style="color: var(--text-tertiary); font-size: 0.85em;">${earthKm.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} km</span>`;
+                }
+            } else {
+                // For planets/moons/inactive spacecraft, use normal format
+                formattedDistanceEarth = `${earthAu.toFixed(4)} AU<br><span style="color: var(--text-tertiary); font-size: 0.85em;">${earthKm.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')} km</span>`;
+            }
+            
+            return `
+                <tr class="${rowClass} ${hiddenClass}">
+                    <td>${getTypeIndicator(item)}</td>
+                    <td>${getNameLink(item)}</td>
+                    <td>${formatDistance(distanceSunAu, isSpacecraft)}</td>
+                    <td>${item.speed_sun}</td>
+                    <td>${formattedDistanceEarth}</td>
+                    <td>${item.speed_earth}</td>
+                    <td class="coordinates">${formatCoordinates(item.position)}</td>
+                    <td>${extraInfo}</td>
+                </tr>
+            `;
+        }
+
+        
+        // Update table with data
+        function updateTable(data) {
+            const t = translations[currentLang];
+            const tableBody = document.getElementById('table-body');
+            const inactiveTableBody = document.getElementById('inactive-table-body');
+            const inactiveToggle = document.getElementById('inactive-toggle');
+            const inactiveTable = document.getElementById('inactive-table');
+            const inactiveCount = document.getElementById('inactive-count');
+            const tableContainer = document.querySelector('.table-container');
+            
+            // Check if we should use card layout (mobile view)
+            const useCardLayout = isMobileView();
+            
+            // Apply current sort to the data (only if not already sorted)
+            // Don't call applySort here to avoid infinite recursion
+            
+            if (useCardLayout) {
+                // Use card layout for mobile
+                let cardsHtml = '';
+                let inactiveCardsHtml = '';
+                
+                // Add planets and their moons
+                data.planets.forEach(planet => {
+                    cardsHtml += renderCard(planet, false, isFirstLoad);
+                    
+                    // Add moons
+                    planet.moons.forEach(moon => {
+                        cardsHtml += renderCard(moon, false, isFirstLoad);
+                    });
+                });
+                
+                // Add spacecraft (separate active and inactive)
+                const activeSpacecraft = data.spacecraft.filter(sc => sc.status === 'active');
+                const inactiveSpacecraft = data.spacecraft.filter(sc => sc.status !== 'active');
+                
+                activeSpacecraft.forEach(sc => {
+                    cardsHtml += renderCard(sc, false, isFirstLoad);
+                });
+                
+                inactiveSpacecraft.forEach(sc => {
+                    inactiveCardsHtml += renderCard(sc, true, isFirstLoad);
+                });
+                
+                // Mark first load as complete
+                isFirstLoad = false;
+                
+                // Create or update card container
+                let cardContainer = document.querySelector('.card-container');
+                if (!cardContainer) {
+                    cardContainer = document.createElement('div');
+                    cardContainer.className = 'card-container';
+                    tableContainer.appendChild(cardContainer);
+                }
+                
+                // Update card container
+                cardContainer.innerHTML = cardsHtml + inactiveCardsHtml;
+                
+                // Hide tables
+                document.getElementById('solar-system-table').style.display = 'none';
+                document.getElementById('inactive-table').style.display = 'none';
+                
+            } else {
+                // Use table layout for desktop
+                let html = '';
+                let inactiveHtml = '';
+                
+                // Add planets and their moons
+                data.planets.forEach(planet => {
+                    html += renderRow(planet);
+                    
+                    // Add moons
+                    planet.moons.forEach(moon => {
+                        html += renderRow(moon);
+                    });
+                });
+                
+                // Add spacecraft (separate active and inactive)
+                const activeSpacecraft = data.spacecraft.filter(sc => sc.status === 'active');
+                const inactiveSpacecraft = data.spacecraft.filter(sc => sc.status !== 'active');
+                
+                activeSpacecraft.forEach(sc => {
+                    html += renderRow(sc);
+                });
+                
+                inactiveSpacecraft.forEach(sc => {
+                    inactiveHtml += renderRow(sc, true);
+                });
+                
+                // Update tables
+                tableBody.innerHTML = html;
+                inactiveTableBody.innerHTML = inactiveHtml;
+                
+                // Show/hide inactive section
+                const shouldShowInactive = inactiveSpacecraft.some(sc => 
+                    document.getElementById('filter-spacecraft-inactive').checked
+                );
+                
+                if (shouldShowInactive) {
+                    inactiveToggle.style.display = 'flex';
+                    inactiveCount.textContent = inactiveSpacecraft.length;
+                } else {
+                    inactiveToggle.style.display = 'none';
+                    inactiveTable.style.display = 'none';
+                }
+                
+                // Remove card container if exists
+                const cardContainer = document.querySelector('.card-container');
+                if (cardContainer) {
+                    cardContainer.remove();
+                }
+            }
+            
+            // Update timestamp with timezone
+            const now = new Date();
+            const locale = currentLang === 'zh' ? 'zh-CN' : 'en-US';
+            const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+            document.getElementById('last-update').textContent = now.toLocaleString(locale, {
+                timeZone: timezone,
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                timeZoneName: 'short'
+            });
+            document.getElementById('refresh-status').textContent = t.statusUpdated;
+            
+            // Reset refresh status after a short delay
+            setTimeout(() => {
+                document.getElementById('refresh-status').textContent = t.statusRefreshing;
+            }, 500);
+        }
+
+        // Show error
+        function showError(error) {
+            const t = translations[currentLang];
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="8" class="error">
+                        ${t.loadingError}${error.message}<br>
+                        <small>${t.checkServer}</small>
+                    </td>
+                </tr>
+            `;
+            document.getElementById('refresh-status').textContent = t.statusError;
+        }
+
+        // Toggle inactive section
+        document.getElementById('inactive-toggle').addEventListener('click', function() {
+            this.classList.toggle('expanded');
+            const inactiveTable = document.getElementById('inactive-table');
+            if (inactiveTable.style.display === 'none') {
+                inactiveTable.style.display = 'table';
+            } else {
+                inactiveTable.style.display = 'none';
+            }
+        });
+
+        // Handle table header clicks for sorting
+        function handleSortClick(column) {
+            // Toggle order if clicking same column, otherwise set to ascending
+            if (currentSort.column === column) {
+                currentSort.order = currentSort.order === 'asc' ? 'desc' : 'asc';
+            } else {
+                currentSort.column = column;
+                currentSort.order = 'asc';
+            }
+            
+            // Update sort indicators
+            updateSortIndicators();
+            
+            // Apply sort and update table
+            if (applySort()) {
+                updateTable(globalData);
+            }
+        }
+
+        // Update header sort indicators
+        function updateSortIndicators() {
+            const headers = document.querySelectorAll('#solar-system-table thead th');
+            headers.forEach(header => {
+                header.classList.remove('sortable', 'asc', 'desc');
+            });
+            
+            const columnMap = {
+                'name': 'th-name',
+                'distance_sun': 'th-distance-sun',
+                'speed_sun': 'th-speed-sun',
+                'distance_earth': 'th-distance-earth',
+                'speed_earth': 'th-speed-earth'
+            };
+            
+            const headerId = columnMap[currentSort.column];
+            if (headerId) {
+                const header = document.getElementById(headerId);
+                if (header) {
+                    header.classList.add('sortable', currentSort.order);
+                    header.title = currentLang === 'zh' ? '点击切换排序' : 'Click to toggle sort';
+                }
+            }
+        }
+
+        // Add click handlers to table headers
+        const sortableHeaders = ['th-name', 'th-distance-sun', 'th-speed-sun', 'th-distance-earth', 'th-speed-earth'];
+        const columnMap = {
+            'th-name': 'name',
+            'th-distance-sun': 'distance_sun',
+            'th-speed-sun': 'speed_sun',
+            'th-distance-earth': 'distance_earth',
+            'th-speed-earth': 'speed_earth'
+        };
+
+        sortableHeaders.forEach(headerId => {
+            const header = document.getElementById(headerId);
+            if (header) {
+                header.classList.add('sortable');
+                header.title = currentLang === 'zh' ? '点击排序' : 'Click to sort';
+                header.addEventListener('click', () => handleSortClick(columnMap[headerId]));
+            }
+        });
+
+        // Initialize sort indicators
+        updateSortIndicators();
+
+        // Initialize filter visual states
+        function initializeFilterStates() {
+            ['planet', 'moon', 'spacecraft-active', 'spacecraft-inactive'].forEach(type => {
+                const checkbox = document.getElementById(`filter-${type}`);
+                const legendItem = checkbox.closest('.legend-item');
+                
+                if (checkbox.checked) {
+                    legendItem.classList.remove('disabled');
+                } else {
+                    legendItem.classList.add('disabled');
+                }
+            });
+        }
+
+        // Initialize theme from localStorage
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme) {
+                currentTheme = savedTheme;
+                if (currentTheme === 'dark') {
+                    document.documentElement.setAttribute('data-theme', 'dark');
+                    document.getElementById('theme-btn').textContent = '☀';
+                }
+            }
+        }
+
+        // Load data
+        async function loadData() {
+            try {
+                const data = await fetchSolarSystemData();
+                globalData = data;
+                
+                // Apply current sort to maintain sort order during auto-refresh
+                if (currentSort) {
+                    applySort(currentSort.column, currentSort.order);
+                }
+                
+                updateTable(globalData);
+            } catch (error) {
+                showError(error);
+            }
+        }
+
+        
+        // Mobile table scroll handling
+        function handleTableScroll() {
+            const tableContainer = document.querySelector('.table-container');
+            if (tableContainer) {
+                tableContainer.addEventListener('scroll', function() {
+                    // Check if scrolled to show/hide scroll hint
+                    if (this.scrollLeft > 20) {
+                        this.classList.add('scrolled');
+                    } else {
+                        this.classList.remove('scrolled');
+                    }
+                });
+            }
+        }
+
+        // Prevent horizontal scroll on body when scrolling table
+        function preventBodyScroll() {
+            // This function is disabled to allow proper touch scrolling on mobile
+            // The CSS touch-action: pan-y handles scroll behavior appropriately
+            return;
+        }
+
+        // Optimize viewport height for mobile browsers
+        function setMobileViewportHeight() {
+            // Set CSS variable for mobile viewport height
+            const vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+
+        // Detect device orientation and adjust layout
+        function handleOrientationChange() {
+            // Debounce orientation change
+            let resizeTimer;
+            window.addEventListener('orientationchange', function() {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(function() {
+                    setMobileViewportHeight();
+                    // Force table reflow
+                    const table = document.querySelector('table');
+                    if (table) {
+                        table.style.display = 'none';
+                        table.offsetHeight; // Trigger reflow
+                        table.style.display = 'table';
+                    }
+                }, 100);
+            });
+        }
+
+        // Add touch-friendly enhancements
+        function enhanceTouchExperience() {
+            // Add ripple effect to buttons (for touch devices)
+            const buttons = document.querySelectorAll('button');
+            buttons.forEach(button => {
+                button.addEventListener('touchstart', function() {
+                    this.style.transform = 'scale(0.95)';
+                });
+                button.addEventListener('touchend', function() {
+                    this.style.transform = '';
+                });
+            });
+
+            // Improve tap targets on mobile
+            if ('ontouchstart' in window) {
+                const legendItems = document.querySelectorAll('.legend-item');
+                legendItems.forEach(item => {
+                    item.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                        const checkbox = this.querySelector('.filter-checkbox');
+                        const eventType = document.createEvent('Event');
+                        eventType.initEvent('click', true, true);
+                        this.dispatchEvent(eventType);
+                    });
+                });
+            }
+        }
+
+        // Initialize filter visual states
+        initializeFilterStates();
+        
+        // Initialize theme
+        initializeTheme();
+        
+        // Initial load
+        loadData();
+
+        // Set up auto-refresh
+        updateInterval = setInterval(loadData, REFRESH_RATE);
+
+        // Scroll progress indicator
+        function updateScrollProgress() {
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            const progress = (scrollTop / scrollHeight) * 100;
+            
+            const scrollProgress = document.getElementById('scroll-progress');
+            if (scrollProgress) {
+                scrollProgress.style.width = `${progress}%`;
+            }
+        }
+
+        // Back to top button visibility
+        function updateBackToTopButton() {
+            const backToTop = document.getElementById('back-to-top');
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            
+            if (backToTop) {
+                if (scrollTop > 300) {
+                    backToTop.classList.add('visible');
+                } else {
+                    backToTop.classList.remove('visible');
+                }
+            }
+        }
+
+        // Scroll to top function
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Initialize mobile enhancements
+        handleTableScroll();
+        preventBodyScroll();
+        setMobileViewportHeight();
+        handleOrientationChange();
+        enhanceTouchExperience();
+        
+        // Add scroll event listeners
+        window.addEventListener('scroll', function() {
+            updateScrollProgress();
+            updateBackToTopButton();
+        });
+        
+        // Initialize scroll progress
+        updateScrollProgress();
+        updateBackToTopButton();
+
+        // Update viewport height on resize
+        window.addEventListener('resize', setMobileViewportHeight);
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', function() {
+            if (updateInterval) {
+                clearInterval(updateInterval);
+            }
+        });
+    </script>
+</body>
+</html>
