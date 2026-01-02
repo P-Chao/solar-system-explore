@@ -1,6 +1,6 @@
 # Solar System Explorer
 
-A real-time solar system exploration webpage displaying information about planets, moons, and artificial spacecraft.
+A real-time solar system exploration webpage displaying information about planets, moons, and artificial spacecraft. Demo: [Solar System Explorer](https://solar.p-chao.com)
 
 ## Features
 
